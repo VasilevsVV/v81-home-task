@@ -25,14 +25,6 @@ def import_project_labels_as_json(project_id, res_path):
     json.dump(labels.result, fl)
     fl.close()
 
-# def load_project_labels(project_id):
-#     if (not os.path.exists(const.PROJECT_LABELS_PATH)):
-#         import_project_labels_as_json(project_id, const.PROJECT_LABELS_PATH)
-#     with open(const.PROJECT_LABELS_PATH, "r") as f:
-#         return json.load(f)  
-    
-
-
 class Ontology:
     'Class represents project ontology'
     
@@ -63,6 +55,12 @@ class Ontology:
         
     def get_labels(self):
         return self.__source_labels
+
+    def get_project_id(self):
+        return self.__project_id
+    
+    def get_project_name(self):
+        return self.__project_name
 
     def __mk_data_row(self, row):
         data = row["data_row"]
