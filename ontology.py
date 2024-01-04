@@ -1,6 +1,7 @@
 import labelbox
 import const
 import json
+import csv
 import os
 import auxiliary as aux
 
@@ -106,7 +107,7 @@ class Ontology:
     def __feature_data(obj):
         match obj.get("annotation_kind", "classification"):
             case "ImageBoundingBox": return obj["bounding_box"]
-            case "ImageSegmentationMask": return obj["mask"]
+            case "ImageSegmentationMask": return aux.get_in(obj, ["mask", "url"])
     
     def __mk_feature(self, obj):
         return {"feature_id":   obj["feature_id"],
@@ -123,6 +124,9 @@ class Ontology:
                 res.append(feature)
         return res
 
-    def to_csv(self):
-        return self.__source_labels
+    def to_csv(self, filename):
+        with open("resources/{}.csv".format(filename), "w") as f:
+            dict_writer = csv.DictWriter(f, Ontology.data_row_all_keys())
+            dict_writer.writeheader()
+            dict_writer.writerows(self.data_features())
 
