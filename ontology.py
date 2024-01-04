@@ -34,6 +34,15 @@ def load_project_labels(project_id):
 
 class Ontology:
     'Class represents project ontology'
+    
+    DATA_ROW_KEYS = ("img_id", "img_name")
+    DATA_LABEL_KEYS = ("label_id", "label_kind", "annotator", "age", "text_comment")
+    DATA_FEATURE_KEYS = ("feature_id", "feature_name", "feature_kind", "feature_data")
+    
+    @staticmethod
+    def data_row_all_keys():
+        return Ontology.DATA_ROW_KEYS + Ontology.DATA_LABEL_KEYS + Ontology.DATA_FEATURE_KEYS
+    
     def __init__(self, project_id) -> None:
         self.__source_labels = load_project_labels(project_id)
         self.__project_id = project_id
@@ -76,7 +85,7 @@ class Ontology:
         return {"label_id": label["id"],
                 "label_kind": label["label_kind"],
                 "annotator": aux.get_in(label, ["label_details", "created_by"], "No annotator!"),
-                "puppy/adult": aux.get_in(age, ["radio_answer", "name"], "Undefined"),
+                "age": aux.get_in(age, ["radio_answer", "name"], "Undefined"),
                 "text_comment": aux.get_in(text, ["text_answer", "content"], ""),
                 "objects": aux.get_in(label, ["annotations", "objects"])
                 }
@@ -86,7 +95,7 @@ class Ontology:
             return self.__data_labels
         res = []
         for row in self.data_rows():
-            row_data = aux.select_keys(row, ["img_id", "img_name"])
+            row_data = aux.select_keys(row, Ontology.DATA_ROW_KEYS)
             for lbl in row["labels"]:
                 data_label = row_data | self.__mk_label(lbl)
                 res.append(data_label)
@@ -108,9 +117,9 @@ class Ontology:
     def data_features(self):
         res = []
         for lbl in self.data_labels():
-            label_data = aux.select_keys(lbl, ["img_id", "img_name", "label_id", "label_kind", ])
+            label_data = aux.select_keys(lbl, Ontology.DATA_ROW_KEYS + Ontology.DATA_LABEL_KEYS)
             for obj in lbl["objects"]:
-                feature = self.__mk_feature(obj)
+                feature = label_data | self.__mk_feature(obj)
                 res.append(feature)
         return res
 
