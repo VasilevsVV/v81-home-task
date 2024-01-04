@@ -28,9 +28,9 @@ def import_project_labels_as_json(project_id, res_path):
 class Ontology:
     'Class represents project ontology'
     
-    DATA_ROW_KEYS = ("img_id", "img_name", "project_id")
-    DATA_LABEL_KEYS = ("label_id", "label_kind", "annotator_email", "age", "text_comment")
-    DATA_FEATURE_KEYS = ("feature_id", "feature_name", "feature_kind", "feature_data")
+    DATA_ROW_KEYS = ("project_id", "img_id", "img_name")
+    DATA_LABEL_KEYS = ("label_id", "label_kind", "annotator_email")
+    DATA_FEATURE_KEYS = ("feature_id", "feature_name", "feature_type", "feature_data", "feature_data_type")
     
     @staticmethod
     def data_row_all_keys():
@@ -89,9 +89,8 @@ class Ontology:
         return {"label_id": label["id"],
                 "label_kind": label["label_kind"],
                 "annotator_email": aux.get_in(label, ["label_details", "created_by"], "No annotator!"),
-                "age": aux.get_in(age, ["radio_answer", "name"], "Undefined"),
-                "text_comment": aux.get_in(text, ["text_answer", "content"], ""),
-                "objects": aux.get_in(label, ["annotations", "objects"])
+                "objects": aux.get_in(label, ["annotations", "objects"]),
+                "classifications": aux.get_in(label, ["annotations", "classifications"])
                 }
 
     def data_labels(self):
@@ -108,14 +107,21 @@ class Ontology:
     
     @staticmethod
     def __feature_data(obj):
-        match obj.get("annotation_kind", "classification"):
+        match obj.get("annotation_kind", obj.get("name")):
             case "ImageBoundingBox": return obj["bounding_box"]
             case "ImageSegmentationMask": return aux.get_in(obj, ["mask", "url"])
+            case "Puppy/Adult": return aux.get_in(obj, ("radio_answer", "name"))
+            case "Free text comments": return aux.get_in(obj, ("text_answer", "content"))
+            
+    @staticmethod
+    def __feature_data_type(obj):
+        return obj.get("annotation_kind", "String")
     
-    def __mk_feature(self, obj):
+    def __mk_feature(self, obj, feature_type):
         return {"feature_id":   obj["feature_id"],
                 "feature_name": obj["name"],
-                "feature_kind": obj["annotation_kind"],
+                "feature_type": feature_type,
+                "feature_data_type": self.__feature_data_type(obj),
                 "feature_data": self.__feature_data(obj)}
     
     def data_features(self):
@@ -123,8 +129,9 @@ class Ontology:
         for lbl in self.data_labels():
             label_data = aux.select_keys(lbl, Ontology.DATA_ROW_KEYS + Ontology.DATA_LABEL_KEYS)
             for obj in lbl["objects"]:
-                feature = label_data | self.__mk_feature(obj)
-                res.append(feature)
+                res.append(label_data | self.__mk_feature(obj, "object"))
+            for obj in lbl["classifications"]:
+                res.append(label_data | self.__mk_feature(obj, "classification"))
         return res
 
     def dump_to_csv(self, filename):
