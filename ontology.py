@@ -25,19 +25,19 @@ def import_project_labels_as_json(project_id, res_path):
     json.dump(labels.result, fl)
     fl.close()
 
-def load_project_labels(project_id):
-    if (not os.path.exists(const.PROJECT_LABELS_PATH)):
-        import_project_labels_as_json(project_id, const.PROJECT_LABELS_PATH)
-    with open(const.PROJECT_LABELS_PATH, "r") as f:
-        return json.load(f)  
+# def load_project_labels(project_id):
+#     if (not os.path.exists(const.PROJECT_LABELS_PATH)):
+#         import_project_labels_as_json(project_id, const.PROJECT_LABELS_PATH)
+#     with open(const.PROJECT_LABELS_PATH, "r") as f:
+#         return json.load(f)  
     
 
 
 class Ontology:
     'Class represents project ontology'
     
-    DATA_ROW_KEYS = ("img_id", "img_name")
-    DATA_LABEL_KEYS = ("label_id", "label_kind", "annotator", "age", "text_comment")
+    DATA_ROW_KEYS = ("img_id", "img_name", "project_id")
+    DATA_LABEL_KEYS = ("label_id", "label_kind", "annotator_email", "age", "text_comment")
     DATA_FEATURE_KEYS = ("feature_id", "feature_name", "feature_kind", "feature_data")
     
     @staticmethod
@@ -45,17 +45,21 @@ class Ontology:
         return Ontology.DATA_ROW_KEYS + Ontology.DATA_LABEL_KEYS + Ontology.DATA_FEATURE_KEYS
     
     def __init__(self, project_id) -> None:
-        self.__source_labels = load_project_labels(project_id)
+        self.__local_json_storage_path = "resources/project_{}_ontology.json".format(project_id)
         self.__project_id = project_id
-        self.__project_name = self.__find_project_name()
         self.__data_rows = None
         self.__data_labels = None
+        self.__source_labels = self.__load_project_labels()
+        self.__project_name = self.__find_project_name()
         
+    def __load_project_labels(self):
+        if (not os.path.exists(self.__local_json_storage_path)):
+            import_project_labels_as_json(self.__project_id, self.__local_json_storage_path)
+        with open(self.__local_json_storage_path, "r") as f:
+            return json.load(f)      
+    
     def __find_project_name(self):
         return self.__source_labels[0]["projects"][self.__project_id]["name"]
-        
-    def project_name(self):
-        return self.__project_name
         
     def get_labels(self):
         return self.__source_labels
@@ -66,6 +70,7 @@ class Ontology:
         return {"img_id": data["id"],   ## Must have and ID!
                 "img_name": data.get("external_id", "No name!!"),
                 "author": aux.get_in(data, ["details", "created_by"], "No author!!"),
+                "project_id": self.__project_id,
                 "project_name": self.__project_name,
                 "labels": project["labels"]}
 
@@ -85,7 +90,7 @@ class Ontology:
         text = aux.find_by(data, "name", "Free text comments")
         return {"label_id": label["id"],
                 "label_kind": label["label_kind"],
-                "annotator": aux.get_in(label, ["label_details", "created_by"], "No annotator!"),
+                "annotator_email": aux.get_in(label, ["label_details", "created_by"], "No annotator!"),
                 "age": aux.get_in(age, ["radio_answer", "name"], "Undefined"),
                 "text_comment": aux.get_in(text, ["text_answer", "content"], ""),
                 "objects": aux.get_in(label, ["annotations", "objects"])
@@ -124,9 +129,11 @@ class Ontology:
                 res.append(feature)
         return res
 
-    def to_csv(self, filename):
-        with open("resources/{}.csv".format(filename), "w") as f:
+    def dump_to_csv(self, filename):
+        filepath = "resources/{}.csv".format(filename)
+        with open(filepath, "w") as f:
             dict_writer = csv.DictWriter(f, Ontology.data_row_all_keys())
             dict_writer.writeheader()
             dict_writer.writerows(self.data_features())
+        return filepath
 
