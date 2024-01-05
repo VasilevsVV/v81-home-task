@@ -141,4 +141,15 @@ class Ontology:
             dict_writer.writeheader()
             dict_writer.writerows(self.data_features())
         return filepath
-
+    
+    # Features filtering
+    
+    def filter_features_by(self, keymap):
+        features = self.data_features()
+        def pred (row):
+            for k, v in keymap.items():
+                if not row.get(k, False) == v:
+                    return False
+            return True
+        return list(filter(pred, features))
+    
