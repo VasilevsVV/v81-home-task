@@ -3,6 +3,7 @@ import ontology
 import const
 import unittest
 import os
+import auxiliary as aux
 
 class Test_ontology_test(unittest.TestCase):
     def test_import(self):
@@ -43,6 +44,42 @@ class Test_ontology_test(unittest.TestCase):
                                                    'feature_type': 'classification',
                                                    'feature_data_type': 'String',
                                                    'feature_data': 'Adult'})
+        
+    def test_ontology_filtering(self):
+        ont = Ontology(const.PROJECT_ID)
+        
+        res = ont.filter_features_by({"feature_type": "classification"})
+        self.assertEqual(len(res), 12)
+        self.assertEqual(aux.select_items(res[0], ["feature_type"]), {'feature_type': 'classification'})
+        
+    def test_ontology_filtering_multicolumn(self):
+        ont = Ontology(const.PROJECT_ID)
+        res = ont.filter_features_by({"img_name": "dalmatian2.jpg", 
+                                      "feature_type": "object",
+                                      "feature_name": "White_Area"})
+        self.assertEqual(aux.select_items(res[0], ["img_name", "feature_type", "feature_name"]), 
+                         {"img_name": "dalmatian2.jpg", 
+                        "feature_type": "object",
+                        "feature_name": "White_Area"})
+        self.assertEqual(len(res), 5)
+        
+        res = ont.filter_features_by({"img_name": "dalmatian2.jpg", 
+                                      "feature_type": "object",
+                                      "feature_name": "Dark_Spot"})
+        self.assertEqual(aux.select_items(res[0], ["img_name", "feature_type", "feature_name"]), 
+                         {"img_name": "dalmatian2.jpg", 
+                        "feature_type": "object",
+                        "feature_name": "Dark_Spot"})
+        self.assertEqual(len(res), 12)
+        
+        res = ont.filter_features_by({"img_name": "dalmatian2.jpg", 
+                                      "feature_type": "object",
+                                      "feature_name": "White_Area_Free_Hand"})
+        self.assertEqual(aux.select_items(res[0], ["img_name", "feature_type", "feature_name"]), 
+                         {"img_name": "dalmatian2.jpg", 
+                        "feature_type": "object",
+                        "feature_name": "White_Area_Free_Hand"})
+        self.assertEqual(len(res), 4)
     
 if __name__ == '__main__':
     unittest.main()
