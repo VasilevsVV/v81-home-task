@@ -98,7 +98,7 @@ class Ontology:
             return self.__data_labels
         res = []
         for row in self.data_rows():
-            row_data = aux.select_keys(row, Ontology.DATA_ROW_KEYS)
+            row_data = aux.select_items(row, Ontology.DATA_ROW_KEYS)
             for lbl in row["labels"]:
                 data_label = row_data | self.__mk_label(lbl)
                 res.append(data_label)
@@ -127,7 +127,7 @@ class Ontology:
     def data_features(self):
         res = []
         for lbl in self.data_labels():
-            label_data = aux.select_keys(lbl, Ontology.DATA_ROW_KEYS + Ontology.DATA_LABEL_KEYS)
+            label_data = aux.select_items(lbl, Ontology.DATA_ROW_KEYS + Ontology.DATA_LABEL_KEYS)
             for obj in lbl["objects"]:
                 res.append(label_data | self.__mk_feature(obj, "object"))
             for obj in lbl["classifications"]:
