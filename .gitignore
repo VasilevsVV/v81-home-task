@@ -1,6 +1,5 @@
 *.png
 *.jpeg
-*.json
 *.pyc
 output/
 *#
