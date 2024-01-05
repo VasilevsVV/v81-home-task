@@ -2,6 +2,7 @@ import numpy as np
 import pandas
 import csv
 from matplotlib import pyplot as plt
+import const
 
 def find_by(coll, key, value):
     return next(item for item in coll if item[key] == value)
@@ -32,7 +33,7 @@ def make_histogram():
     df = pandas.DataFrame(data, columns=["shade", "img_id"])
     bins_count = len(set(shades))
     fig = df.plot(kind="hist", y="shade", bins=bins_count)
-    fig.get_figure().savefig("resources/shades_hist.png")
+    fig.get_figure().savefig(f"{const.OUTPUT_DIR}/shades_hist.png")
 
 def simple_shade(shade):
     if (shade < 66105 or shade == 66120):
@@ -54,4 +55,4 @@ def make_grouped_histogram():
     df2 = df[["shade"]].map(simple_shade)[["shade"]].groupby("shade")["shade"].agg("count").sort_values()
     
     fig = df2.plot(kind="bar", y="shade")
-    fig.get_figure().savefig("resources/shades_grouped_hist.png")
+    fig.get_figure().savefig(f"{const.OUTPUT_DIR}/shades_grouped_hist.png")

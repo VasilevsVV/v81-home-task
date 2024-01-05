@@ -1,11 +1,10 @@
-import csv
 from pathlib import Path
 import const as const
 from ontology import Ontology
 import auxiliary as aux
 
 def main():
-    path = Path("resources")
+    path = Path(const.OUTPUT_DIR)
     path.mkdir(parents=True, exist_ok=True)
     ont = Ontology(const.PROJECT_ID)
     res_path = ont.dump_to_csv("project_ontology")

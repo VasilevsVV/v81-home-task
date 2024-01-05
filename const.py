@@ -2,4 +2,4 @@ LB_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbG5kZXpjaXYxc
 
 PROJECT_ID = 'clnhmb9160mkj070vccp0d8te'
 
-PROJECT_LABELS_PATH = "resources/labels.json"
+OUTPUT_DIR="output"

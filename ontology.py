@@ -135,7 +135,7 @@ class Ontology:
         return res
 
     def dump_to_csv(self, filename):
-        filepath = "resources/{}.csv".format(filename)
+        filepath = "{}/{}.csv".format(const.OUTPUT_DIR, filename)
         with open(filepath, "w") as f:
             dict_writer = csv.DictWriter(f, Ontology.data_row_all_keys())
             dict_writer.writeheader()
